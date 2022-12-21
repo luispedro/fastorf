@@ -12,9 +12,7 @@ def test_genetic_code():
 
 @given(codon=st.lists(min_size=3, max_size=3, elements=st.sampled_from('ATGC')))
 def test_reverse_comp(codon):
-    print(codon)
     codon = ''.join(codon)
-    print(codon)
     assert genetic_code.is_start(codon) == genetic_code.is_start_reverse_complement(reverse_complement(codon))
     assert genetic_code.is_stop(codon) == genetic_code.is_stop_reverse_complement(reverse_complement(codon))
 
