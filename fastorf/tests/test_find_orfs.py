@@ -1,7 +1,16 @@
-import genetic_code
-import find_orfs
-import fasta
+from fastorf import genetic_code
+from fastorf import find_orfs
+from fastorf import fasta
+
+from os import path
 from hypothesis import given, strategies as st
+
+DATA_DIR = path.join(
+        path.dirname(__file__),
+        'data')
+
+def _get_file(fname):
+    return path.join(DATA_DIR, fname)
 
 def test_find_orfs():
     orfs = find_orfs.find_orfs('ATG' + 'AAG' * 100 + 'TAA')
@@ -9,9 +18,9 @@ def test_find_orfs():
 
 def test_ecoli_10k():
     '''Test that we can find the ORFs in the E. coli genome (first 10kbp).'''
-    [seq] = list(fasta.fasta_iter('./tests/data/NC_000913_10kbp.fna.xz'))
+    [(_, seq)] = list(fasta.fasta_iter(_get_file('NC_000913_10kbp.fna.xz')))
     orfs = find_orfs.find_orfs(seq)
-    with open('./tests/data/NC_000913_10kbp.orfs', 'rt') as f:
+    with open(_get_file('NC_000913_10kbp.orfs'), 'rt') as f:
         expected = [tuple(map(int, line.split())) for line in f]
     orfs.sort()
     expected.sort()
