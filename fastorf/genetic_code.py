@@ -1,7 +1,10 @@
+START_CODONS = ['ATG', 'GTG', 'TTG']
+STOP_CODONS = ['TAA', 'TAG', 'TGA']
+
 def is_start(codon):
-    return codon in ['ATG', 'GTG', 'TTG']
+    return codon in START_CODONS
 def is_stop(codon):
-    return codon in ['TAA', 'TAG', 'TGA']
+    return codon in STOP_CODONS
 
 def is_start_reverse_complement(codon):
     return codon in ['CAT', 'CAC', 'CAA']

@@ -2,6 +2,19 @@ from . import genetic_code
 from collections import namedtuple
 ORFPos = namedtuple('ORFPos', ['start', 'end', 'rc'])
 
+def findall(seq, pats):
+    '''Finds all the matches to the set of patterns given
+    '''
+    matches = []
+    for pat in pats:
+        next_start = seq.find(pat)
+        while next_start >= 0:
+            matches.append(next_start)
+            next_start = seq.find(pat, next_start+1)
+    matches.sort()
+    return matches
+
+
 MIN_LEN = 90
 def find_orfs_fwd(seq, accept_incomplete=False):
     '''Find ORFs in the forward strand
@@ -13,7 +26,8 @@ def find_orfs_fwd(seq, accept_incomplete=False):
     else:
         active = [-1, -1, -1]
     orfs = []
-    for i in range(len(seq)):
+    positions = findall(seq, genetic_code.START_CODONS + genetic_code.STOP_CODONS)
+    for i in positions:
         ix = i % 3
         if genetic_code.is_start(seq[i:i+3]):
             if active[ix] == -1:
@@ -36,6 +50,7 @@ def find_orfs_rev(seq, accept_incomplete=False):
     return [ORFPos(len(seq)-b, len(seq)-a, True) for a,b,_ in orfs][::-1]
 
 def find_orfs(seq, accept_incomplete=False):
+    '''Find ORFs in nucletide sequence'''
     return find_orfs_fwd(seq, accept_incomplete) + find_orfs_rev(seq, accept_incomplete)
 
 def extract(seq, orf):

@@ -35,3 +35,13 @@ def test_reverse_comp(seq):
     assert len(orfs) == len(rc_orfs)
     assert sum(orf.rc for orf in orfs) == sum((not orf.rc) for orf in rc_orfs)
 
+
+@given(seq=st.text(min_size=203, max_size=903, alphabet='ATGC'),
+        pats=st.lists(min_size=1, max_size=7,
+            elements=st.text(min_size=1, max_size=5, alphabet='ATGC')))
+def test_findall(seq, pats):
+    matches = find_orfs.findall(seq, pats)
+    matches = set(matches)
+    for i in range(len(seq)):
+        is_match = any(seq[i:].startswith(p) for p in pats)
+        assert (i in matches) == is_match
