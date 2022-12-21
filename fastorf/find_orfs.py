@@ -1,10 +1,13 @@
-import fasta
-import genetic_code
+from . import genetic_code
 from collections import namedtuple
 ORFPos = namedtuple('ORFPos', ['start', 'end', 'rc'])
 
 MIN_LEN = 90
-def find_orfs1(seq, accept_incomplete=False):
+def find_orfs_fwd(seq, accept_incomplete=False):
+    '''Find ORFs in the forward strand
+
+    accept_incomplete : bool, optional
+    '''
     if accept_incomplete:
         active = [0, 1, 2]
     else:
@@ -28,17 +31,32 @@ def find_orfs1(seq, accept_incomplete=False):
     return orfs
 
 
-def find_orfs_reverse_complement(seq, accept_incomplete=False):
-    orfs = find_orfs1(genetic_code.reverse_complement(seq), accept_incomplete)
+def find_orfs_rev(seq, accept_incomplete=False):
+    orfs = find_orfs_fwd(genetic_code.reverse_complement(seq), accept_incomplete)
     return [ORFPos(len(seq)-b, len(seq)-a, True) for a,b,_ in orfs][::-1]
 
 def find_orfs(seq, accept_incomplete=False):
-    return find_orfs1(seq, accept_incomplete) + find_orfs_reverse_complement(seq, accept_incomplete)
+    return find_orfs_fwd(seq, accept_incomplete) + find_orfs_rev(seq, accept_incomplete)
 
+def extract(seq, orf):
+    '''Extract ORF sequence'''
+    seq = seq[orf.start: orf.end]
+    if orf.rc:
+        seq = genetic_code.reverse_complement(seq)
+    return seq
 
-def write_orfs(seq, header, ix, orfs, rc, out, coords_out):
-    for i, (a, b, _) in enumerate(orfs):
-        out.write(f'>{header}_{i+ix}\n'
-            f'{genetic_code.translate(seq[a:b] if not rc else genetic_code.reverse_complement(seq[a:b]))}\n')
-        coords_out.write(f'{header}_{i+ix}\t{a}\t{b}\t{b-a}\t{rc}\n')
+def write_orfs(seq, header, orfs, faa_out, coords_out):
+    '''
+    seq : DNA sequence
+    header : Each orf will be named {header}_{ix}
+    orfs : list of ORFs
+    faa_out : output file object (optional)
+    coords_out : output file object (optional)
+    '''
+    for i,orf in enumerate(orfs):
+        if faa_out is not None:
+            faa_out.write(f'>{header}_{i} {orf.start}-{orf.end} {"-1" if orf.rc else "+1"}\n')
+            faa_out.write(f'{genetic_code.translate(extract(seq, orf))}\n')
+        if coords_out is not None:
+            coords_out.write(f'{header}_{i}\t{orf.start}\t{orf.end}\t{orf.rc}\n')
 
