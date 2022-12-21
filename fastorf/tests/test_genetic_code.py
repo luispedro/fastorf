@@ -1,4 +1,5 @@
-import genetic_code
+from fastorf import genetic_code
+from fastorf.genetic_code import reverse_complement
 from hypothesis import given, strategies as st
 
 def test_genetic_code():
