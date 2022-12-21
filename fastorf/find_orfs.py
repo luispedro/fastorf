@@ -4,7 +4,7 @@ from collections import namedtuple
 ORFPos = namedtuple('ORFPos', ['start', 'end', 'rc'])
 
 MIN_LEN = 90
-def find_orfs(seq, accept_incomplete=False):
+def find_orfs1(seq, accept_incomplete=False):
     if accept_incomplete:
         active = [0, 1, 2]
     else:
@@ -29,8 +29,11 @@ def find_orfs(seq, accept_incomplete=False):
 
 
 def find_orfs_reverse_complement(seq, accept_incomplete=False):
-    orfs = find_orfs(genetic_code.reverse_complement(seq), accept_incomplete)
+    orfs = find_orfs1(genetic_code.reverse_complement(seq), accept_incomplete)
     return [ORFPos(len(seq)-b, len(seq)-a, True) for a,b,_ in orfs][::-1]
+
+def find_orfs(seq, accept_incomplete=False):
+    return find_orfs1(seq, accept_incomplete) + find_orfs_reverse_complement(seq, accept_incomplete)
 
 
 def write_orfs(seq, header, ix, orfs, rc, out, coords_out):
