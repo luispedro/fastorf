@@ -45,3 +45,9 @@ def test_findall(seq, pats):
     for i in range(len(seq)):
         is_match = any(seq[i:].startswith(p) for p in pats)
         assert (i in matches) == is_match
+
+
+@given(seq=st.text(min_size=3, max_size=103, alphabet='ATGC'))
+def test_is_atcg(seq):
+    assert find_orfs.is_atcg(seq) == all(c in 'ATCG' for c in seq)
+

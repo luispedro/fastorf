@@ -2,6 +2,45 @@ from . import genetic_code
 from collections import namedtuple
 ORFPos = namedtuple('ORFPos', ['start', 'end', 'rc'])
 
+def is_atcg(seq):
+    '''Check if sequence consists of only ATCG characters'''
+    # This is the fastest empirically, even if the code looks strange:
+
+    # In[52]: import re
+    #
+    # In[53]: from collections import Counter
+    #
+    # In[54]: NUCLEOTIDES = set('ACGT')
+    #
+    # In[55]: print(len(seq))
+    # 4641652
+    #
+    # In[56]: %timeit not(set(seq) - set('ATGC'))
+    # 45.2 ms ± 2.57 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)
+    #
+    # In[57]: %timeit re.search(r'[^ATGC]', seq) is None
+    # 33.5 ms ± 3.95 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)
+    #
+    # In[58]: %timeit re.match('^[ATCG]+$', seq) is not None
+    # 15.2 ms ± 838 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+    #
+    # In[59]: %timeit all(c in NUCLEOTIDES for c in seq)
+    # 212 ms ± 4.42 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+    #
+    # In[60]: %timeit not seq.strip('ATGC')
+    # 49.6 ms ± 649 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
+    #
+    # In[61]: %timeit seq.count('A') + seq.count('T') + seq.count('G') + seq.count('C') == len(seq)
+    # 46.1 ms ± 1.63 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)
+    #
+    # In[62]: %timeit c=Counter(seq); sum(c[n] for n in NUCLEOTIDES) == len(seq)
+    # 214 ms ± 9.9 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+    #
+    # In[63]: %timeit seq.translate(str.maketrans('ATGC', '\n\n\n\n')).count('\n') == len(seq)
+    # 8.46 ms ± 195 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+
+    return seq.translate(str.maketrans('ATGC', '\n\n\n\n')).count('\n') == len(seq)
+
 def findall(seq, pats):
     '''Finds all the matches to the set of patterns given
     '''
@@ -34,13 +73,13 @@ def find_orfs_fwd(seq, accept_incomplete=False):
                 active[ix] = i
         if genetic_code.is_stop(seq[i:i+3]):
             if active[ix] != -1:
-                if i - active[ix] > MIN_LEN:
+                if i - active[ix] > MIN_LEN and is_atcg(seq[active[ix]:i+3]):
                     orfs.append(ORFPos(active[ix], i+3, False))
                 active[ix] = -1
     if accept_incomplete:
         for ix in range(3):
             if active[ix] != -1:
-                if len(seq) - active[ix] > MIN_LEN:
+                if len(seq) - active[ix] > MIN_LEN and is_atcg(seq[active[ix]:]):
                     orfs.append(ORFPos(active[ix], len(seq) - (len(seq)-ix)%3, False))
     return orfs
 
