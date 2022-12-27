@@ -26,6 +26,8 @@ setup(name='FastORF',
       install_requires=[],
       package_data={},
       zip_safe=False,
-      entry_points={}
+      entry_points={
+            'console_scripts': ['FastORF=fastorf.main:main'],
+      }
 )
 
